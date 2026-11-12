@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Full Stack Appointment Scheduling System — Code & Project Report</title>
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 16mm 14mm 16mm;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    background: #ffffff;
+    line-height: 1.5;
+    font-size: 11pt;
+    margin: 0;
+    padding: 0;
+  }
+  .page-break {
+    page-break-after: always;
+  }
+  .no-break {
+    page-break-inside: avoid;
+  }
+  header {
+    border-bottom: 2px solid #4f46e5;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: 20pt;
+    color: #1e1b4b;
+    margin: 0 0 4px 0;
+  }
+  .subtitle {
+    color: #475569;
+    font-size: 11pt;
+    margin: 0 0 10px 0;
+  }
+  .badge-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .badge {
+    background: #eef2ff;
+    color: #4338ca;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 8.5pt;
+    font-weight: 600;
+    border: 1px solid #c7d2fe;
+  }
+  h2 {
+    font-size: 14pt;
+    color: #312e81;
+    border-left: 4px solid #6366f1;
+    padding-left: 8px;
+    margin: 22px 0 10px 0;
+  }
+  h3 {
+    font-size: 11pt;
+    color: #0f172a;
+    margin: 14px 0 6px 0;
+    font-weight: 700;
+  }
+  p, li {
+    font-size: 9.5pt;
+    color: #334155;
+    margin: 4px 0;
+  }
+  ul, ol {
+    padding-left: 20px;
+    margin: 4px 0 10px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin: 8px 0 14px 0;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 6px 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  pre {
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+    font-size: 8pt;
+    line-height: 1.35;
+    overflow-x: auto;
+    margin: 6px 0 12px 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  code {
+    font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+    font-size: 8.5pt;
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  .highlight-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid #22c55e;
+    padding: 8px 12px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-size: 9pt;
+  }
+  .footer {
+    text-align: right;
+    font-size: 8pt;
+    color: #94a3b8;
+    margin-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Full Stack Appointment Scheduling System</h1>
+  <div class="subtitle">Complete Technical Specification, Core Source Code & Paper Submission Guide</div>
+  <div class="badge-row">
+    <span class="badge">React 18</span>
+    <span class="badge">TypeScript</span>
+    <span class="badge">Tailwind CSS</span>
+    <span class="badge">Node.js + Express</span>
+    <span class="badge">Prisma ORM</span>
+    <span class="badge">SQLite / PostgreSQL</span>
+    <span class="badge">JWT & RBAC</span>
+  </div>
+</header>
+
+<section class="no-break">
+  <h2>1. Project Overview & System Architecture</h2>
+  <p>The <strong>Appointment Scheduling System (Schedulr)</strong> is an enterprise-grade full-stack web application designed to allow clients to discover services, view real-time time-zone aware availability, book appointments, and track their lifecycle. It provides role-based portals for <strong>Clients</strong>, <strong>Service Providers</strong>, and <strong>Administrators</strong>.</p>
+  
+  <h3>Key Functional Modules</h3>
+  <ul>
+    <li><strong>Client Booking Flow:</strong> 4-step wizard (Service &rarr; Provider &rarr; Live Slot &rarr; Confirmation) with zero double-booking concurrency guarantees.</li>
+    <li><strong>Dynamic Slot Engine:</strong> Computes bookable windows mathematically by intersecting provider operating hours, subtracting blocked time-off, active bookings, buffer times, and historical timestamps.</li>
+    <li><strong>Provider Schedule Manager:</strong> Weekly recurring hours editor (Monday&ndash;Sunday), ad-hoc date/time blockouts, and status progression (Confirm, Complete, No-Show, Cancel).</li>
+    <li><strong>Administrative Operations:</strong> Service catalog management, provider onboarding, utilization rates, and audit logs.</li>
+    <li><strong>Calendar Synchronization:</strong> Generates RFC 5545 <code>.ics</code> calendar files downloadable directly into Google Calendar, Outlook, and Apple Calendar.</li>
+  </ul>
+</section>
+
+<section class="no-break">
+  <h2>2. Database Schema (Prisma Models)</h2>
+  <p><em>Write this on paper to represent the Database Architecture & Relations:</em></p>
+  <pre><code>// server/prisma/schema.prisma
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  phone        String?
+  role         String   @default("CLIENT") // CLIENT | PROVIDER | ADMIN
+  timezone     String   @default("UTC")
+  createdAt    DateTime @default(now())
+  
+  providerProfile    ProviderProfile?
+  clientAppointments Appointment[]      @relation("ClientAppointments")
+  notifications      Notification[]
+  actorEvents        AppointmentEvent[] @relation("ActorEvents")
+}
+
+model ProviderProfile {
+  id        String  @id @default(cuid())
+  userId    String  @unique
+  title     String
+  specialty String
+  bio       String  @default("")
+  isActive  Boolean @default(true)
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services          ProviderService[]
+  availabilityRules AvailabilityRule[]
+  blockedSlots      BlockedSlot[]
+  appointments      Appointment[]      @relation("ProviderAppointments")
+}
+
+model Service {
+  id              String   @id @default(cuid())
+  name            String
+  description     String   @default("")
+  durationMinutes Int
+  bufferMinutes   Int      @default(0)
+  priceCents      Int      @default(0)
+  isActive        Boolean  @default(true)
+
+  providers    ProviderService[]
+  appointments Appointment[]
+}
+
+model AvailabilityRule {
+  id         String  @id @default(cuid())
+  providerId String
+  dayOfWeek  Int     // 0 (Sunday) to 6 (Saturday)
+  startTime  String  // HH:mm (e.g. "09:00")
+  endTime    String  // HH:mm (e.g. "17:00")
+  isEnabled  Boolean @default(true)
+
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  @@unique([providerId, dayOfWeek])
+}
+
+model Appointment {
+  id            String   @id @default(cuid())
+  referenceCode String   @unique // e.g. APT-8F3K2
+  clientId      String
+  providerId    String
+  serviceId     String
+  startUtc      DateTime
+  endUtc        DateTime
+  status        String   @default("CONFIRMED") // PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
+  notes         String   @default("")
+  cancelReason  String?
+  createdAt     DateTime @default(now())
+
+  client        User               @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Cascade)
+  provider      ProviderProfile    @relation("ProviderAppointments", fields: [providerId], references: [id], onDelete: Cascade)
+  service       Service            @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  events        AppointmentEvent[]
+  notifications Notification[]
+}</code></pre>
+</section>
+
+<div class="page-break"></div>
+
+<section class="no-break">
+  <h2>3. Core Algorithm: Slot Availability Engine</h2>
+  <p><em>The core scheduling algorithm that calculates dynamic free slots while subtracting appointments, buffers, and time-off:</em></p>
+  <pre><code>// server/src/lib/slots.ts
+
+export function computeAvailableSlots(params: ComputeSlotsParams): ComputedSlot[] {
+  const {
+    dateStr, clientTimezone, providerTimezone,
+    availabilityRules, blockedSlots, existingAppointments,
+    durationMinutes, bufferMinutes = 0, nowUtc = new Date()
+  } = params;
+
+  const clientZone = isValidTimezone(clientTimezone) ? clientTimezone : 'UTC';
+  const providerZone = isValidTimezone(providerTimezone) ? providerTimezone : 'UTC';
+
+  const clientDayStart = DateTime.fromISO(dateStr, { zone: clientZone }).startOf('day');
+  const clientDayEnd = clientDayStart.endOf('day');
+  const dayStartMs = clientDayStart.toMillis();
+  const dayEndMs = clientDayEnd.toMillis();
+  const durationMs = durationMinutes * 60_000;
+  const requestedBufferMs = Math.max(0, bufferMinutes) * 60_000;
+  const stepMs = (durationMinutes >= 30 ? 30 : durationMinutes) * 60_000;
+
+  // Build busy intervals from blocked time-off + existing active appointments + buffers
+  const busyIntervals: Array<{ startMs: number; endMs: number }> = [];
+  
+  for (const block of blockedSlots) {
+    busyIntervals.push({ startMs: block.startUtc.getTime(), endMs: block.endUtc.getTime() });
+  }
+  
+  for (const appt of existingAppointments) {
+    const apptBufferMs = Math.max(0, appt.bufferMinutes ?? 0) * 60_000;
+    busyIntervals.push({
+      startMs: appt.startUtc.getTime() - requestedBufferMs,
+      endMs: appt.endUtc.getTime() + Math.max(apptBufferMs, requestedBufferMs)
+    });
+  }
+
+  const slots: ComputedSlot[] = [];
+  const rulesByDay = new Map(availabilityRules.filter(r => r.isEnabled).map(r => [r.dayOfWeek, r]));
+
+  let cursorDate = clientDayStart.setZone(providerZone).startOf('day');
+  const providerEndDate = clientDayEnd.setZone(providerZone).startOf('day');
+
+  while (cursorDate <= providerEndDate) {
+    const rule = rulesByDay.get(cursorDate.weekday % 7);
+    if (rule) {
+      const [sH, sM] = rule.startTime.split(':').map(Number);
+      const [eH, eM] = rule.endTime.split(':').map(Number);
+      const windowStart = cursorDate.set({ hour: sH, minute: sM, second: 0 }).toMillis();
+      const windowEnd = cursorDate.set({ hour: eH, minute: eM, second: 0 }).toMillis();
+
+      let slotStartMs = windowStart;
+      while (slotStartMs + durationMs <= windowEnd) {
+        const slotEndMs = slotStartMs + durationMs;
+        const withinDay = slotStartMs >= dayStartMs && slotStartMs <= dayEndMs;
+        const inFuture = slotStartMs > nowUtc.getTime();
+
+        if (withinDay && inFuture) {
+          const hasConflict = busyIntervals.some(b => 
+            slotStartMs < b.endMs && slotEndMs > b.startMs
+          );
+
+          if (!hasConflict) {
+            const startDt = DateTime.fromMillis(slotStartMs, { zone: clientZone });
+            slots.push({
+              startUtc: startDt.toUTC().toISO()!,
+              endUtc: DateTime.fromMillis(slotEndMs, { zone: clientZone }).toUTC().toISO()!,
+              label: startDt.toFormat('h:mm a')
+            });
+          }
+        }
+        slotStartMs += stepMs;
+      }
+    }
+    cursorDate = cursorDate.plus({ days: 1 });
+  }
+  return slots;
+}</code></pre>
+</section>
+
+<section class="no-break">
+  <h2>4. Concurrency & Overlap Prevention (Prisma Transaction)</h2>
+  <p><em>Guarantees atomic slot reservation and prevents race-condition double bookings:</em></p>
+  <pre><code>// server/src/routes/appointments.ts
+
+router.post('/', requireAuth, validateBody(createAppointmentSchema), asyncHandler(async (req, res) => {
+  const { providerId, serviceId, startUtc: startUtcStr, notes } = req.body;
+  const startUtc = new Date(startUtcStr);
+
+  const created = await prisma.$transaction(async (tx) => {
+    // 1. Re-validate slot availability inside the atomic transaction lock
+    const { provider, service, endUtc } = await assertSlotBookableInTx(tx, {
+      providerId, serviceId, startUtc
+    });
+
+    // 2. Generate unique human-readable tracking code
+    const referenceCode = `APT-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+
+    // 3. Insert confirmed appointment
+    const appointment = await tx.appointment.create({
+      data: {
+        referenceCode,
+        clientId: req.user!.userId,
+        providerId,
+        serviceId,
+        startUtc,
+        endUtc,
+        status: 'CONFIRMED',
+        notes: notes || '',
+        events: {
+          create: {
+            actorId: req.user!.userId,
+            toStatus: 'CONFIRMED',
+            note: 'Appointment booked successfully'
+          }
+        }
+      },
+      include: appointmentInclude
+    });
+
+    // 4. Create in-app notification alerts for both client and provider
+    await tx.notification.createMany({
+      data: [
+        {
+          userId: req.user!.userId,
+          appointmentId: appointment.id,
+          type: 'BOOKING_CONFIRMED',
+          message: `Booking ${referenceCode} confirmed for ${service.name}.`
+        },
+        {
+          userId: provider.userId,
+          appointmentId: appointment.id,
+          type: 'BOOKING_CONFIRMED',
+          message: `New booking ${referenceCode} received from ${req.user!.email}.`
+        }
+      ]
+    });
+
+    return appointment;
+  });
+
+  res.status(201).json({ appointment: formatAppointment(created) });
+}));</code></pre>
+</section>
+
+<div class="page-break"></div>
+
+<section class="no-break">
+  <h2>5. Authentication & Role-Based Middleware (RBAC)</h2>
+  <p><em>Secure JWT-based session verification with role guard:</em></p>
+  <pre><code>// server/src/middleware/auth.ts
+
+export function requireAuth(req: Request, _res: Response, next: NextFunction): void {
+  const token = req.cookies?.schedulr_token || req.headers.authorization?.replace('Bearer ', '');
+  if (!token) {
+    return next(new AppError('Authentication required', 401, 'UNAUTHORIZED'));
+  }
+  try {
+    req.user = verifyToken(token); // Decodes { userId, role, email }
+    next();
+  } catch {
+    next(new AppError('Invalid or expired session', 401, 'UNAUTHORIZED'));
+  }
+}
+
+export function requireRole(...roles: Array<'CLIENT' | 'PROVIDER' | 'ADMIN'>) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    if (!req.user) return next(new AppError('Authentication required', 401));
+    if (!roles.includes(req.user.role)) {
+      return next(new AppError('Forbidden: Insufficient privileges', 403));
+    }
+    next();
+  };
+}</code></pre>
+</section>
+
+<section class="no-break">
+  <h2>6. Frontend: Interactive Booking Component (React + TypeScript)</h2>
+  <p><em>Write this snippet to demonstrate state management, live API querying, and slot selection:</em></p>
+  <pre><code>// client/src/pages/BookAppointmentPage.tsx (Excerpt)
+
+export function BookAppointmentPage() {
+  const [services, setServices] = useState&lt;Service[]&gt;([]);
+  const [selectedService, setSelectedService] = useState&lt;Service | null&gt;(null);
+  const [selectedProvider, setSelectedProvider] = useState&lt;Provider | null&gt;(null);
+  const [selectedDate, setSelectedDate] = useState&lt;string&gt;(getTodayIsoDate());
+  const [slots, setSlots] = useState&lt;TimeSlot[]&gt;([]);
+  const [selectedSlot, setSelectedSlot] = useState&lt;TimeSlot | null&gt;(null);
+
+  // Load real-time slots whenever provider, service, or date changes
+  useEffect(() => {
+    if (!selectedService || !selectedProvider) return;
+    api.slots.list({
+      providerId: selectedProvider.id,
+      serviceId: selectedService.id,
+      date: selectedDate,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone
+    }).then(res => setSlots(res.slots));
+  }, [selectedService, selectedProvider, selectedDate]);
+
+  const handleBooking = async () => {
+    if (!selectedSlot) return;
+    const res = await api.appointments.create({
+      providerId: selectedProvider!.id,
+      serviceId: selectedService!.id,
+      startUtc: selectedSlot.startUtc
+    });
+    alert(`Booked successfully! Reference: ${res.appointment.referenceCode}`);
+  };
+
+  return (
+    &lt;div className="max-w-4xl mx-auto p-6 space-y-6"&gt;
+      &lt;h1 className="text-2xl font-bold"&gt;Book an Appointment&lt;/h1&gt;
+      {/* 1. Date Picker */}
+      &lt;input type="date" value={selectedDate} onChange={e =&gt; setSelectedDate(e.target.value)} /&gt;
+      
+      {/* 2. Slot Grid */}
+      &lt;div className="grid grid-cols-4 gap-2"&gt;
+        {slots.map(s =&gt; (
+          &lt;button key={s.startUtc} onClick={() =&gt; setSelectedSlot(s)}
+            className={selectedSlot?.startUtc === s.startUtc ? "bg-indigo-600 text-white" : "border p-2"}&gt;
+            {s.label}
+          &lt;/button&gt;
+        ))}
+      &lt;/div&gt;
+
+      &lt;button onClick={handleBooking} disabled={!selectedSlot} className="bg-indigo-600 text-white px-6 py-2 rounded"&gt;
+        Confirm Booking
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="no-break">
+  <h2>7. Unit Test Cases (Vitest Verification)</h2>
+  <pre><code>// server/tests/slots.test.ts
+
+describe('computeAvailableSlots', () => {
+  it('generates expected 30-minute slots for an open morning window', () => {
+    const slots = computeAvailableSlots({
+      dateStr: '2026-11-16', clientTimezone: 'UTC', providerTimezone: 'UTC',
+      availabilityRules: [{ dayOfWeek: 1, startTime: '09:00', endTime: '11:00', isEnabled: true }],
+      blockedSlots: [], existingAppointments: [], durationMinutes: 30, bufferMinutes: 0
+    });
+    expect(slots.map(s => s.startUtc)).toEqual([
+      '2026-11-16T09:00:00.000Z', '2026-11-16T09:30:00.000Z',
+      '2026-11-16T10:00:00.000Z', '2026-11-16T10:30:00.000Z'
+    ]);
+  });
+});</code></pre>
+</section>
+
+<div class="footer">
+  Full Stack Development Project Submission &bull; Schedulr &bull; Page 3 of 3
+</div>
+
+</body>
+</html>
+

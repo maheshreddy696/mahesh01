@@ -1,4 +1,4 @@
-import { Bell, CalendarCheck2, LogOut } from 'lucide-react';
+import { Bell, CalendarCheck2, Download, LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -57,6 +57,16 @@ export function Navbar() {
             </span>
             <span>Schedulr</span>
           </Link>
+
+          <a
+            href="/Appointment_Scheduling_System_Code_Submission.pdf"
+            download="Appointment_Scheduling_System_Code_Submission.pdf"
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-100"
+            title="Download PDF to write on paper"
+          >
+            <Download className="h-3.5 w-3.5 text-brand-600" />
+            <span className="hidden md:inline">Download</span> Code PDF
+          </a>
 
           {user && (
             <nav className="hidden items-center gap-1 sm:flex">
