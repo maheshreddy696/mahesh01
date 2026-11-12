@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { api } from '../lib/api';
 import type { User } from '../types';
 
-interface AuthContextValue {
+export interface AuthContextValue {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
@@ -17,7 +17,7 @@ interface AuthContextValue {
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -68,11 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error('useAuth must be used inside AuthProvider');
-  }
-  return ctx;
-}
+export { useAuth } from './useAuth';
+
 

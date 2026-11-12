@@ -17,3 +17,4 @@ Write-Host "Pushing to GitHub..." -ForegroundColor Green
 git push -u origin main
 
 Write-Host "`nSuccessfully pushed to $RepoUrl!" -ForegroundColor Green
+
