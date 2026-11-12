@@ -1,0 +1,6 @@
+server/prisma/dev.db
+server/prisma/dev.db-journal
+server/.env
+client/.env
+.git
+
